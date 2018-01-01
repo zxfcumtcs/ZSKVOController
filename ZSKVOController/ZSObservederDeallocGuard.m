@@ -96,7 +96,9 @@ static NSString *ZSObservederDeallocGuardLockName = @"ZSObservederDeallocGuardLo
 }
 
 - (void)removeAllObserversOfObserveder
-{    
+{
+    [_lock lock];
+    
     for (ZSKVOController *observer in _observerKeyPathsMap) {
         NSHashTable<ZSKVOItem *> *KVOItemTable =
         [_observerKeyPathsMap objectForKey:observer];
@@ -107,6 +109,8 @@ static NSString *ZSObservederDeallocGuardLockName = @"ZSObservederDeallocGuardLo
                                 context:(__bridge void * _Nullable)(KVOItem)];
         }
     }
+    
+    [_lock unlock];
 }
 
 @end

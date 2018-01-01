@@ -19,31 +19,37 @@ static NSString *ZSKVOObserveMethodPrefix =
 
 NSArray<NSString *>* zs_DumpObjcMethods(Class clz)
 {
-    unsigned int methodCount = 0;
-
-    Method *methods =
-    class_copyMethodList(clz, &methodCount);
-
     NSMutableArray<NSString *> *methodNames =
-    [NSMutableArray arrayWithCapacity:methodCount];
+    [NSMutableArray array];
 
-    for (unsigned int i = 0; i < methodCount; i++) {
-        Method method = methods[i];
+    Class curClz = clz;
+    
+    while (curClz != NULL) {
+        unsigned int methodCount = 0;
         
-        NSString *methodName =
-        NSStringFromSelector(method_getName(method));
+        Method *methods =
+        class_copyMethodList(curClz, &methodCount);
         
-        if (methodName) {
-            [methodNames addObject:methodName];
+        for (unsigned int i = 0; i < methodCount; i++) {
+            Method method = methods[i];
+            
+            NSString *methodName =
+            NSStringFromSelector(method_getName(method));
+            
+            if (methodName) {
+                [methodNames addObject:methodName];
+            }
         }
-    }
+        
+        free(methods);
 
-    free(methods);
+        curClz = class_getSuperclass(curClz);
+    }
 
     return [methodNames copy];
 }
 
-NSString* zs_RegexObserveKeyPath(NSString *methodName)
+NSString *zs_RegexObserveKeyPath(NSString *methodName)
 {
     if (!methodName) {
         return nil;
@@ -101,22 +107,17 @@ NSString *zs_KeyPathOfObserveder(NSString *keyPath, NSObject *observeder)
     if (!observeder || !keyPath) {
         return nil;
     }
+
+    if ([observeder respondsToSelector:NSSelectorFromString(keyPath)]) {
+        return keyPath;
+    }
     
-    NSArray<NSString *> *methodsOfObserveder =
-    zs_DumpObjcMethods(observeder.class);
+    NSString *lowercaseKeyPath = zs_lowercaseInitials(keyPath);
+    if ([observeder respondsToSelector:NSSelectorFromString(lowercaseKeyPath)]) {
+        return lowercaseKeyPath;
+    }
     
-    __block NSString *originalKeyPath = nil;
-    [methodsOfObserveder enumerateObjectsUsingBlock:^(NSString * _Nonnull obj,
-                                                      NSUInteger idx,
-                                                      BOOL * _Nonnull stop) {
-        if ([obj isEqualToString:keyPath] ||
-            [obj isEqualToString:zs_lowercaseInitials(keyPath)]) {
-            originalKeyPath = obj;
-            *stop = YES;
-        }
-    }];
-    
-    return originalKeyPath;
+    return nil;
 }
 
 NSString *zs_handleInitials(NSString *originalStr, BOOL uppercase)
@@ -154,13 +155,21 @@ SEL zs_SelForKeyPathOfObserver(NSString *keyPath, NSObject *observer)
     
     NSString *selName = [NSString stringWithFormat:@"%@%@:",
                          ZSKVOObserveMethodPrefix,
-                         zs_uppercaseInitials(keyPath)];
+                         keyPath];
     
     SEL sel = NSSelectorFromString(selName);
-    
     if ([observer respondsToSelector:sel]) {
         return sel;
     }
     
+    NSString *uppercaseSelName = [NSString stringWithFormat:@"%@%@:",
+                                  ZSKVOObserveMethodPrefix,
+                                  zs_uppercaseInitials(keyPath)];
+    SEL uppercaseSel = NSSelectorFromString(uppercaseSelName);
+    
+    if ([observer respondsToSelector:uppercaseSel]) {
+        return uppercaseSel;
+    }
+
     return NULL;
 }

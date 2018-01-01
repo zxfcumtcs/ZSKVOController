@@ -7,13 +7,26 @@ ZSKVOController 框架达到的效果：
 在 ViewModel 中有属性：`title`、`desc`，
 View 需要绑定`title`、`desc`，则在 View 中只需做两件事：
 + 绑定：将 ViewModel 绑定到 View 上`[_viewModel zs_addKVOObserver:self];`；
-+ 实现方法：`zs_observeTitle:`、`zs_observeDesc:`。
++ 通过宏`ZSKVOObserve`或`ZSKVOObserve_Change`实现 KVO 响应方法。
 
-其中，`zs_observeDesc:`的实现可能如下：
-```
-- (void)zs_observeDesc:(NSDictionary *)change
+如：
+```mm
+ZSKVOObserve(title)
 {
-    _descLabel.text = change[NSKeyValueChangeNewKey];
+    if (change[ZSKVONotificationKeys.observeder] == _viewModel) {
+        _titleLabel.text = [NSString stringWithFormat:@"from viewmode1：%@", change[NSKeyValueChangeNewKey]];
+    }
+    else if (change[ZSKVONotificationKeys.observeder] == _viewModel2) {
+        _titleLabel.text = [NSString stringWithFormat:@"from viewmode2：%@", change[NSKeyValueChangeNewKey]];
+    }
+    else {
+        _titleLabel.text = [NSString stringWithFormat:@"from unknown viewmode：%@", change[NSKeyValueChangeNewKey]];
+    }
+}
+
+ZSKVOObserve_Change(desc, changes)
+{
+    _descLabel.text = changes[NSKeyValueChangeNewKey];
 }
 ```
 

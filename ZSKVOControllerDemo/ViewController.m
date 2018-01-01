@@ -82,8 +82,7 @@
     [_viewModel2 zs_addKVOObserver:self];
 }
 
-
-- (void)zs_observeTitle:(NSDictionary *)change
+ZSKVOObserve(title)
 {
     if (change[ZSKVONotificationKeys.observeder] == _viewModel) {
         _titleLabel.text = [NSString stringWithFormat:@"from viewmode1：%@", change[NSKeyValueChangeNewKey]];
@@ -96,9 +95,9 @@
     }
 }
 
-- (void)zs_observeDesc:(NSDictionary *)change
+ZSKVOObserve_Change(desc, changes)
 {
-    _descLabel.text = change[NSKeyValueChangeNewKey];
+    _descLabel.text = changes[NSKeyValueChangeNewKey];
 }
 
 - (void)btnClick:(id)sender

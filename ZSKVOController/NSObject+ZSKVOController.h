@@ -8,6 +8,17 @@
 
 #import <Foundation/Foundation.h>
 
+#define ZSKVOObserveMethodPrefix zs_observe
+
+#define ZSKVOCONCAT2(A, B) A ## B
+#define ZSKVOCONCAT(A, B) ZSKVOCONCAT2(A, B)
+
+#define ZSKVOObserve(kvo_keypath) \
+- (void)ZSKVOCONCAT(ZSKVOObserveMethodPrefix, kvo_keypath):(NSDictionary *)change
+
+#define ZSKVOObserve_Change(kvo_keypath, kvo_change) \
+- (void)ZSKVOCONCAT(ZSKVOObserveMethodPrefix, kvo_keypath):(NSDictionary *)kvo_change
+
 @interface NSObject (ZSKVOController)
 
 - (void)zs_addKVOObserver:(NSObject *)observer;
